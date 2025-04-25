@@ -15,6 +15,7 @@ export default function Generator() {
   const [taskStatus, setTaskStatus] = useState<TaskStatus>('idle')
   const [taskId, setTaskId] = useState<string | null>(null)
   const [imageUrl, setImageUrl] = useState<string | null>(null)
+  const [progress, setProgress] = useState(0)
 
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
@@ -33,6 +34,7 @@ export default function Generator() {
     
     setTaskStatus('generating')
     setImageUrl(null)
+    setProgress(0)
 
     try {
       const response = await fetch('/api/generate', {
@@ -114,6 +116,23 @@ export default function Generator() {
     }
   }, [taskId])
 
+  useEffect(() => {
+    if (taskStatus === 'generating') {
+      const updateProgress = () => {
+        setProgress(prev => {
+          if (prev >= 98) return 98
+          const increment = Math.floor(Math.random() * 10) + 2
+          return Math.min(prev + increment, 98)
+        })
+        const nextInterval = Math.floor(Math.random() * 5000) + 3000
+        setTimeout(updateProgress, nextInterval)
+      }
+      updateProgress()
+    } else {
+      setProgress(0)
+    }
+  }, [taskStatus])
+
   return (
     <section className="relative bg-gradient-to-b from-gray-900 to-black text-white py-6 px-4">
       <div className="max-w-7xl mx-auto">
@@ -187,16 +206,17 @@ export default function Generator() {
               <div className="mt-4 p-4 bg-gray-700 rounded-lg">
                 {taskStatus === 'generating' && (
                   <div className="w-full">
-                    <div className="flex items-center justify-center space-x-2">
-                      <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-500"></div>
-                      <span>image generating...</span>
-                    </div>
                     <div className="mt-2 w-full bg-gray-600 rounded-full h-2">
                       <div
-                        className="bg-blue-500 h-2 rounded-full transition-all duration-300"
-                      ></div>
+                        className="bg-blue-500 h-2 rounded-full transition-all duration-500"
+                        style={{ width: `${progress}%` }}
+                      />
                     </div>
                     <div className="mt-1 text-sm text-gray-400 text-center">
+                      {progress}%
+                    </div>
+                    <div className="mt-2 text-center text-gray-400">
+                      Generating your image...Do not refresh this page
                     </div>
                   </div>
                 )}
@@ -215,6 +235,7 @@ export default function Generator() {
                       alt="Generated image" 
                       fill 
                       className="object-contain"
+                      unoptimized
                     />
                   </div>
                 )}
