@@ -64,7 +64,6 @@ export default function Generator() {
     if (!taskId) return;
 
     let isActive = true
-    let intervalId: NodeJS.Timeout
 
     const pollStatus = async () => {
       try {
@@ -88,17 +87,14 @@ export default function Generator() {
             deleteImage(uploadedImage)
             setUploadedImage(null)
           }
-          clearInterval(intervalId)
         } else if (data.status === 'GENERATING') {
           setTaskStatus('generating')
         } else if (data.status === 'FAILED') {
           setTaskStatus('error')
           setTaskId(null)
-          clearInterval(intervalId)
         } else {
           setTaskStatus('unknown')
           setTaskId(null)
-          clearInterval(intervalId)
         }
       } catch (error) {
         console.error('获取状态失败:', error)
@@ -106,11 +102,10 @@ export default function Generator() {
           setTaskStatus('error')
           setTaskId(null)
         }
-        clearInterval(intervalId)
       }
     }
 
-    intervalId = setInterval(pollStatus, 5000)
+    const intervalId: NodeJS.Timeout = setInterval(pollStatus, 5000)
 
     return () => {
       isActive = false
